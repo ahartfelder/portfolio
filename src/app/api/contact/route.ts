@@ -21,7 +21,11 @@ const ratelimit = new Ratelimit({
 // ── Schema de validação ───────────────────────────────────
 const contactSchema = z.object({
   name: z.string().min(2, "Nome muito curto").max(100, "Nome muito longo"),
-  email: z.email("E-mail inválido"),
+  email: z
+    .email("E-mail inválido")
+    .refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val), {
+      message: "E-mail inválido",
+    }),
   subject: z.string().max(200, "Assunto muito longo").optional(),
   message: z
     .string()

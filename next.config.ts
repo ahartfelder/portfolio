@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
-// Valida variáveis de ambiente na build — lança erro antes de subir se faltar alguma
-import "./src/env";
+const isDev = process.env.NODE_ENV === "development";
+
+// Em desenvolvimento, o Turbopack usa eval() internamente para Server Components.
+// 'unsafe-eval' é necessário apenas nesse contexto — nunca em produção.
+const scriptSrc = isDev
+  ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+  : "script-src 'self' 'unsafe-inline'";
 
 const nextConfig: NextConfig = {
   async headers() {
@@ -36,7 +41,7 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline'",
+              scriptSrc,
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data:",

@@ -2,6 +2,25 @@
 
 import { useState } from "react";
 
+// ── Mesmas regras do schema Zod no servidor ───────────────
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+const validators: Record<string, (v: string) => string> = {
+  name: (v) =>
+    v.length < 2
+      ? "Nome muito curto"
+      : v.length > 100
+        ? "Nome muito longo"
+        : "",
+  email: (v) => (!EMAIL_RE.test(v) ? "E-mail inválido" : ""),
+  message: (v) =>
+    v.length < 10
+      ? "Mensagem muito curta"
+      : v.length > 2000
+        ? "Mensagem muito longa"
+        : "",
+};
+
 const SKILLS = [
   {
     group: "Web & Full-Stack",
@@ -28,7 +47,7 @@ type FormState = "idle" | "loading" | "success" | "error";
 
 export default function Home() {
   const [formState, setFormState] = useState<FormState>("idle");
-  const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -44,10 +63,15 @@ export default function Home() {
     // Honeypot: bots preenchem, humanos não
     if (honeypot) return;
 
-    const newErrors: Record<string, boolean> = {};
-    if (!name) newErrors.name = true;
-    if (!email) newErrors.email = true;
-    if (!message) newErrors.message = true;
+    // Valida todos os campos antes de enviar
+    const newErrors: Record<string, string> = {};
+    const nameErr = validators.name(name ?? "");
+    const emailErr = validators.email(email ?? "");
+    const messageErr = validators.message(message ?? "");
+
+    if (nameErr) newErrors.name = nameErr;
+    if (emailErr) newErrors.email = emailErr;
+    if (messageErr) newErrors.message = messageErr;
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -72,9 +96,23 @@ export default function Home() {
     }
   }
 
-  function clearError(field: string) {
-    setErrors((prev) => ({ ...prev, [field]: false }));
+  // Valida ao sair do campo (onBlur)
+  function validateField(field: string, value: string) {
+    const msg = validators[field]?.(value.trim()) ?? "";
+    setErrors((prev) => ({ ...prev, [field]: msg }));
   }
+
+  // Limpa o erro enquanto digita (onChange)
+  function clearError(field: string) {
+    setErrors((prev) => ({ ...prev, [field]: "" }));
+  }
+
+  const inputClass = (field: string) =>
+    `bg-surface text-foreground text-[14px] rounded-lg px-3 py-2.5 outline-none border transition-all placeholder:text-faint w-full ${
+      errors[field]
+        ? "border-red-400/50 ring-2 ring-red-400/10"
+        : "border-border2 focus:border-accent/40 focus:ring-2 focus:ring-accent/8"
+    }`;
 
   return (
     <div className="flex-grow flex flex-col px-4 sm:px-6 lg:px-8 py-16 max-w-5xl mx-auto w-full">
@@ -159,10 +197,10 @@ export default function Home() {
               >
                 {/* Name + Email */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="flex flex-col gap-1.5">
+                  <div className="flex flex-col gap-1">
                     <label
                       htmlFor="name"
-                      className="font-mono text-[10px] tracking-[0.08em] uppercase text-muted"
+                      className="font-mono text-[10px] tracking-[0.08em] uppercase text-muted mb-0.5"
                     >
                       Nome
                     </label>
@@ -172,18 +210,20 @@ export default function Home() {
                       type="text"
                       placeholder="Seu nome"
                       onChange={() => clearError("name")}
-                      className={`bg-surface text-foreground text-[14px] rounded-lg px-3 py-2.5 outline-none border transition-all placeholder:text-faint
-                        ${
-                          errors.name
-                            ? "border-red-400/50 ring-2 ring-red-400/10"
-                            : "border-border2 focus:border-accent/40 focus:ring-2 focus:ring-accent/8"
-                        }`}
+                      onBlur={(e) => validateField("name", e.target.value)}
+                      className={inputClass("name")}
                     />
+                    {errors.name && (
+                      <p className="font-mono text-[10px] text-red-400 mt-1">
+                        {errors.name}
+                      </p>
+                    )}
                   </div>
-                  <div className="flex flex-col gap-1.5">
+
+                  <div className="flex flex-col gap-1">
                     <label
                       htmlFor="email"
-                      className="font-mono text-[10px] tracking-[0.08em] uppercase text-muted"
+                      className="font-mono text-[10px] tracking-[0.08em] uppercase text-muted mb-0.5"
                     >
                       E-mail
                     </label>
@@ -193,13 +233,14 @@ export default function Home() {
                       type="email"
                       placeholder="seu@email.com"
                       onChange={() => clearError("email")}
-                      className={`bg-surface text-foreground text-[14px] rounded-lg px-3 py-2.5 outline-none border transition-all placeholder:text-faint
-                        ${
-                          errors.email
-                            ? "border-red-400/50 ring-2 ring-red-400/10"
-                            : "border-border2 focus:border-accent/40 focus:ring-2 focus:ring-accent/8"
-                        }`}
+                      onBlur={(e) => validateField("email", e.target.value)}
+                      className={inputClass("email")}
                     />
+                    {errors.email && (
+                      <p className="font-mono text-[10px] text-red-400 mt-1">
+                        {errors.email}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -225,10 +266,10 @@ export default function Home() {
                 </div>
 
                 {/* Message */}
-                <div className="flex flex-col gap-1.5">
+                <div className="flex flex-col gap-1">
                   <label
                     htmlFor="message"
-                    className="font-mono text-[10px] tracking-[0.08em] uppercase text-muted"
+                    className="font-mono text-[10px] tracking-[0.08em] uppercase text-muted mb-0.5"
                   >
                     Mensagem
                   </label>
@@ -238,13 +279,14 @@ export default function Home() {
                     rows={4}
                     placeholder="Descreva seu projeto ou dúvida..."
                     onChange={() => clearError("message")}
-                    className={`bg-surface text-foreground text-[14px] rounded-lg px-3 py-2.5 outline-none border resize-y transition-all placeholder:text-faint leading-relaxed
-                      ${
-                        errors.message
-                          ? "border-red-400/50 ring-2 ring-red-400/10"
-                          : "border-border2 focus:border-accent/40 focus:ring-2 focus:ring-accent/8"
-                      }`}
+                    onBlur={(e) => validateField("message", e.target.value)}
+                    className={`${inputClass("message")} resize-y leading-relaxed`}
                   />
+                  {errors.message && (
+                    <p className="font-mono text-[10px] text-red-400 mt-1">
+                      {errors.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Honeypot — visível apenas para bots */}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "@/env"; // Valida variáveis de ambiente no início da aplicação
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
