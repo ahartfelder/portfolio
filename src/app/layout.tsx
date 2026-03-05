@@ -4,8 +4,9 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Projeto de Portfólio",
-  description: "Seja bem-vindo ao projeto de portfólio do AHartfelder!",
+  title: "ahartfelder — Desenvolvedor Full-Stack",
+  description:
+    "Desenvolvedor Full-Stack especializado em Next.js, Node.js, TypeScript e PostgreSQL.",
 };
 
 export default function RootLayout({
@@ -15,8 +16,8 @@ export default function RootLayout({
     process.env.VERCEL_ENV === "preview" ||
     process.env.NODE_ENV === "development";
 
-  const bannerHeight = 40;
-  const headerHeight = 60;
+  const bannerHeight = 36;
+  const headerHeight = 72;
   const totalHeight = isPreview ? bannerHeight + headerHeight : headerHeight;
 
   return (
@@ -24,7 +25,7 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col">
         {isPreview && (
           <div
-            className="fixed top-0 left-0 w-full bg-amber-400 text-gray-800 text-center py-2 font-bold z-50"
+            className="fixed top-0 left-0 w-full bg-amber-400 text-gray-900 text-center text-sm font-semibold z-50 flex items-center justify-center"
             style={{ height: bannerHeight }}
           >
             Ambiente de Desenvolvimento
@@ -34,7 +35,7 @@ export default function RootLayout({
         <Header top={isPreview ? bannerHeight : 0} height={headerHeight} />
 
         <main
-          className="flex-grow flex flex-col container mx-auto"
+          className="relative z-10 flex-grow flex flex-col container mx-auto"
           style={{ paddingTop: totalHeight }}
         >
           {children}
