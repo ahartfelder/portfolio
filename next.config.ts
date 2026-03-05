@@ -1,36 +1,30 @@
 import type { NextConfig } from "next";
 
+// Valida variáveis de ambiente na build — lança erro antes de subir se faltar alguma
+import "./src/env";
+
 const nextConfig: NextConfig = {
   async headers() {
     return [
       {
         source: "/(.*)",
         headers: [
-          // ── Impede que o site seja embutido em iframes (clickjacking)
-          {
-            key: "X-Frame-Options",
-            value: "DENY",
-          },
+          // ── Impede clickjacking
+          { key: "X-Frame-Options", value: "DENY" },
 
-          // ── Impede que o browser "adivinhe" o tipo de conteúdo (MIME sniffing)
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
+          // ── Impede MIME sniffing
+          { key: "X-Content-Type-Options", value: "nosniff" },
 
-          // ── Controla informações enviadas no header Referer
-          {
-            key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
-          },
+          // ── Controla o header Referer
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
 
-          // ── Força HTTPS por 1 ano (habilite somente após confirmar HTTPS estável)
+          // ── Força HTTPS por 1 ano
           {
             key: "Strict-Transport-Security",
             value: "max-age=31536000; includeSubDomains; preload",
           },
 
-          // ── Restringe acesso a APIs sensíveis do browser
+          // ── Restringe APIs sensíveis do browser
           {
             key: "Permissions-Policy",
             value:
