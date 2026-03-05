@@ -1,7 +1,62 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          // ── Impede que o site seja embutido em iframes (clickjacking)
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+
+          // ── Impede que o browser "adivinhe" o tipo de conteúdo (MIME sniffing)
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+
+          // ── Controla informações enviadas no header Referer
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+
+          // ── Força HTTPS por 1 ano (habilite somente após confirmar HTTPS estável)
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains; preload",
+          },
+
+          // ── Restringe acesso a APIs sensíveis do browser
+          {
+            key: "Permissions-Policy",
+            value:
+              "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+          },
+
+          // ── Content Security Policy
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "img-src 'self' data:",
+              "connect-src 'self' https://api.resend.com",
+              "frame-ancestors 'none'",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+            ].join("; "),
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
